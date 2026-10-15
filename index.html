@@ -1,0 +1,1221 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>html,body{margin:0;height:100%}[hidden]{display:none!important}</style>
+<title>Garnet 5 Method Statement</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: site-office board. Stage tabs across the top, 3D build on the left, the method statement sheet pinned on the right (under the view on phones). */
+:root{
+  --bg:#e8ebe7; --paper:#f8f9f6; --ink:#1c2320; --muted:#5b6560; --line:#cbd1cc; --accent:#c2551f; --accent-ink:#fff;
+  --done:#3c4743; --done-ink:#eef1ee; --sky:#dde5e9; --ground:#9aa293; --hold:#a3320f; --hold-bg:#f6e2d6; --flag-bg:#fbf0d2; --flag-line:#d9a521;
+  --hud:color-mix(in srgb,var(--paper) 88%,transparent);
+  --display:"IBM Plex Sans Condensed","Arial Narrow",Arial,sans-serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141817; --paper:#1c2120; --ink:#e3e8e4; --muted:#9aa49f; --line:#353d3a; --accent:#e2773f; --accent-ink:#1a0d05;
+  --done:#56635e; --done-ink:#f1f4f1; --sky:#20272a; --ground:#3d4439; --hold:#f2a07a; --hold-bg:#3c2418; --flag-bg:#33290f; --flag-line:#c9951a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141817; --paper:#1c2120; --ink:#e3e8e4; --muted:#9aa49f; --line:#353d3a; --accent:#e2773f; --accent-ink:#1a0d05;
+  --done:#56635e; --done-ink:#f1f4f1; --sky:#20272a; --ground:#3d4439; --hold:#f2a07a; --hold-bg:#3c2418; --flag-bg:#33290f; --flag-line:#c9951a; color-scheme:dark}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:14px}
+.app{display:grid;grid-template-columns:minmax(0,1fr) 440px;grid-template-rows:auto minmax(0,1fr);height:100%}
+header{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:10px 20px;background:var(--paper);border-bottom:1px solid var(--line);
+  padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.brand{flex:0 1 auto;min-width:0}
+.brand b{display:block;font-family:var(--display);font-size:17px;font-weight:600;letter-spacing:.01em}
+.brand span{font-family:var(--mono);font-size:11px;color:var(--muted)}
+nav.tabs{display:flex;gap:4px;overflow-x:auto;flex:1 1 420px;min-width:0;scrollbar-width:thin;padding-bottom:2px}
+nav.tabs button{flex:0 0 auto;font-family:var(--display);font-size:13px;border:1px solid var(--line);background:transparent;color:var(--ink);padding:6px 10px;cursor:pointer;white-space:nowrap}
+nav.tabs button .k{font-family:var(--mono);font-size:11px;margin-right:6px;opacity:.75}
+nav.tabs button.done{background:var(--done);color:var(--done-ink);border-color:var(--done)}
+nav.tabs button.cur{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
+button{font:inherit}
+.mode{display:flex;flex:0 0 auto;border:1px solid var(--line)}
+.mode button{border:0;background:transparent;color:var(--ink);padding:6px 10px;cursor:pointer;font-family:var(--display);font-size:13px}
+.mode button[aria-pressed="true"]{background:var(--ink);color:var(--paper);font-weight:600}
+.tl{width:100%;height:auto;display:block}
+.tl text{font-family:var(--mono);font-size:8.5px;fill:var(--muted)}
+.tl .lab{font-family:var(--body);font-size:9.5px;fill:var(--ink)}
+.tl .bar{fill:color-mix(in srgb,var(--muted) 45%,transparent)}
+.tl .bar.on{fill:var(--accent)}
+.tl .band{fill:color-mix(in srgb,var(--accent) 12%,transparent)}
+.tl .grid{stroke:var(--line);stroke-width:.6}
+table.mt td:first-child{width:auto}
+table.mt td:last-child{text-align:right;width:1%;padding-left:10px}
+td .d3{font-family:var(--mono);font-size:11px;color:var(--accent)}
+td .d{font-family:var(--mono);font-size:11.5px;color:var(--muted);white-space:nowrap}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+#view{position:relative;min-width:0;min-height:0;background:var(--sky);overflow:hidden}
+#view canvas{display:block;width:100%;height:100%;touch-action:none}
+#load{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--mono);font-size:13px;color:var(--muted);background:var(--sky);z-index:5}
+.bar{position:absolute;left:12px;right:12px;top:12px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;pointer-events:none}
+.bar>*{pointer-events:auto}
+.bar button,.bar label{font-family:var(--display);font-size:13px;background:var(--hud);color:var(--ink);border:1px solid var(--line);padding:5px 10px;cursor:pointer;backdrop-filter:blur(4px)}
+.bar button:hover{border-color:var(--accent)}
+.bar button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
+.bar button[aria-pressed="true"]{border-color:var(--ink)}
+.bar label{display:flex;gap:6px;align-items:center}
+.bar label input{accent-color:var(--accent);margin:0}
+#north{position:absolute;top:12px;right:12px;width:40px;height:40px;background:var(--hud);border:1px solid var(--line);border-radius:50%;display:grid;place-items:center}
+#north svg{width:28px;height:28px}
+.prog{position:absolute;right:12px;bottom:12px;width:min(270px,calc(100% - 24px));background:var(--hud);border:1px solid var(--line);padding:7px 9px;font-family:var(--mono);font-size:11.5px;font-variant-numeric:tabular-nums;color:var(--ink)}
+.prog .track{height:4px;background:var(--line);margin-top:6px}
+.prog .fill{height:100%;width:0;background:var(--accent)}
+.legend{position:absolute;left:12px;bottom:12px;max-width:min(300px,calc(100% - 300px));max-height:42%;overflow:auto;background:var(--hud);border:1px solid var(--line);padding:8px 10px;display:grid;gap:3px;font-size:12px}
+.legend h3{cursor:pointer;margin:0 0 3px;font-family:var(--display);font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:600}
+.legend div{display:grid;grid-template-columns:12px minmax(0,1fr);gap:7px;align-items:center}
+.sw{width:12px;height:12px;border:1px solid color-mix(in srgb,var(--ink) 25%,transparent)}
+#pick{position:absolute;left:12px;top:56px;width:min(300px,calc(100% - 24px));background:var(--paper);border:1px solid var(--line);box-shadow:0 6px 20px rgb(0 0 0 / .18);padding:10px 12px;font-size:12.5px;z-index:3}
+#pick b{display:block;font-family:var(--display);font-size:15px;margin-right:24px}
+#pick dl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:3px 10px;margin:8px 0 0}
+#pick dt{color:var(--muted)} #pick dd{margin:0;font-family:var(--mono);font-size:11.5px;overflow-wrap:anywhere}
+#pick .x{position:absolute;right:6px;top:6px;border:0;background:transparent;color:var(--muted);font-size:18px;cursor:pointer;line-height:1;padding:2px 6px}
+.hint{position:absolute;left:12px;top:50px;font-family:var(--mono);font-size:10.5px;color:var(--muted);white-space:nowrap;pointer-events:none}
+
+aside{background:var(--paper);border-left:1px solid var(--line);overflow:auto;min-width:0;
+  padding-block:22px 28px;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
+.sheet{display:flex;flex-direction:column;gap:20px}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.sheet h1{font-family:var(--display);font-size:28px;line-height:1.1;font-weight:600;margin:4px 0 8px;text-wrap:balance}
+.lead{font-size:15px;line-height:1.5;margin:0;color:var(--ink)}
+.sheet h2{font-family:var(--display);font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin:0 0 8px;font-weight:600;display:flex;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:5px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+td{padding:6px 0;border-bottom:1px dashed var(--line);vertical-align:top;line-height:1.4}
+td:first-child{color:var(--muted);padding-right:12px;width:42%}
+td:last-child{font-variant-numeric:tabular-nums}
+ol,ul{margin:0;padding:0;list-style:none;display:grid;gap:7px;font-size:13.5px;line-height:1.45}
+ol{counter-reset:s}
+ol li{counter-increment:s;display:grid;grid-template-columns:26px minmax(0,1fr);gap:6px}
+ol li::before{content:counter(s,decimal-leading-zero);font-family:var(--mono);font-size:11.5px;color:var(--accent);padding-top:2px}
+ul li{display:grid;grid-template-columns:12px minmax(0,1fr);gap:6px}
+ul li::before{content:"";width:6px;height:6px;margin-top:7px;background:var(--muted)}
+.cols{display:grid;grid-template-columns:minmax(0,1fr);gap:20px}
+.tag{display:inline-block;font-family:var(--mono);font-size:10.5px;padding:1px 5px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.tag.hold{background:var(--hold-bg);color:var(--hold);border-color:transparent;font-weight:500;margin-right:4px}
+.flag{background:var(--flag-bg);border-left:4px solid var(--flag-line);padding:10px 12px;font-size:13px;line-height:1.5}
+.flag strong{display:block;font-family:var(--display);font-size:12px;text-transform:uppercase;letter-spacing:.1em;margin-bottom:3px}
+.note{font-size:12.5px;line-height:1.5;color:var(--muted);margin:0}
+.stagelist{display:grid;gap:4px}
+.stagelist button{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:8px;align-items:baseline;text-align:left;background:transparent;border:1px solid var(--line);color:var(--ink);padding:8px 10px;cursor:pointer;font-size:13.5px}
+.stagelist button:hover{border-color:var(--accent)}
+.stagelist .k{font-family:var(--mono);color:var(--accent);font-size:12px}
+.stagelist .n{font-family:var(--mono);font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+.pn{display:flex;justify-content:space-between;gap:10px;border-top:1px solid var(--line);padding-top:14px}
+.pn button{background:transparent;border:1px solid var(--line);color:var(--ink);padding:8px 12px;cursor:pointer;font-family:var(--display);font-size:13.5px;min-width:0;text-align:left}
+.pn button:last-child{text-align:right;margin-left:auto}
+.pn button:hover{border-color:var(--accent)}
+.pn small{display:block;font-family:var(--mono);font-size:10.5px;color:var(--muted)}
+
+@media (max-width:860px){
+  .legend.min>div{display:none!important}
+  .app{grid-template-columns:minmax(0,1fr);grid-template-rows:auto 58vh auto;height:auto}
+  aside{border-left:0;border-top:1px solid var(--line);overflow:visible;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+  .legend{max-width:calc(100% - 24px);bottom:62px;max-height:34%}
+  .hint{display:none}
+}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto}}
+</style>
+<div class="app">
+  <header>
+    <div class="brand"><b>Garnet 5 Lamphun · Warehouse W1</b><span>3D method statement · build sequence</span></div>
+    <div class="mode" role="group" aria-label="View"><button id="mStage" aria-pressed="true">By stage</button><button id="mMonth" aria-pressed="false">By month</button></div>
+    <nav class="tabs" id="tabs" aria-label="Stages"></nav>
+  </header>
+  <div id="view">
+    <div id="load">Loading model…</div>
+    <div class="bar">
+      <button id="replay" class="primary">Replay build</button>
+      <button id="vOver" aria-pressed="true">Overview</button>
+      <button id="vClose" aria-pressed="false">Close-up</button>
+      <label for="grey"><input type="checkbox" id="grey" checked> Grey out finished work</label>
+    </div>
+    <div id="north" title="North"><svg viewBox="-14 -14 28 28" aria-label="North arrow"><g id="narrow"><path d="M0-11 L5 5 L0 2 L-5 5Z" fill="var(--accent)"/><text x="0" y="12" text-anchor="middle" font-size="7" font-family="IBM Plex Mono,monospace" fill="var(--ink)">N</text></g></svg></div>
+    <div id="pick" hidden></div>
+    <div class="legend" id="legend"></div>
+    <div class="prog"><div id="count">–</div><div class="track"><div class="fill" id="fill"></div></div></div>
+    <div class="hint">drag to orbit · right-drag to pan · click an element for details · ← → change stage</div>
+  </div>
+  <aside><div class="sheet" id="sheet"></div></aside>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/controls/OrbitControls.js"></script>
+<script>window.S=[
+{
+"t": "Garnet 5 Lamphun · Warehouse W1",
+"short": "Overview",
+"stage": 0,
+"lead": "How the warehouse is built, stage by stage, from landfill and piles to dock equipment. Each stage adds to the work already done.",
+"scope": [
+[
+"Building",
+"Warehouse 162.00 × 112.00 m, grid A–J × 1–7"
+],
+[
+"Floor level",
+"FFL +1.50, driveway ±0.00"
+],
+[
+"Site",
+"Boundary from STR S1-01 site fence; landfill from existing −1.20 m to +1.30 m before piling"
+],
+[
+"Roof",
+"PEB steel frame, metal sheet +12.72 at wall / +15.45 ridge, jack roof +18.60"
+],
+[
+"Piles",
+"1,998 precast piles, 16–18 m"
+],
+[
+"Docks",
+"43 dock shutters, 24 hydraulic levelers"
+],
+[
+"Annex",
+"Office 1F/2F, NW/NE support blocks, pump room, guardhouse, garbage room, rest areas, workshop"
+]
+],
+"seq": [],
+"plant": [],
+"qc": [],
+"safe": [],
+"note": "Quantities and sheet references come from the 3D model built from STR Rev.2 and AR GARN5-LP R2. Work steps are standard practice for this type of warehouse. Values marked \"confirm from spec\" were not on the drawings.",
+"cam": [
+[
+150,
+105,
+150
+],
+[
+0,
+4,
+0
+]
+],
+"close": [
+[
+-170,
+95,
+-140
+],
+[
+0,
+4,
+0
+]
+]
+},
+{
+"t": "Landfill & piling",
+"short": "Landfill & piling",
+"stage": 1,
+"lead": "Fill the site from the existing ground at −1.20 m up to +1.30 m so the piling rig can work, then drive the precast piles for the pile caps and the grid of slab piles that carries the on-pile floor slab.",
+"scope": [
+[
+"Landfill",
+"−1.20 → +1.30 m (2.50 m) inside the site boundary · ≈ 46,442 m² · ≈ 116,105 m³ compacted"
+],
+[
+"Site boundary",
+"Site fence on STR S1-01 Option 1 Rev.2.1 (red line in 3D)"
+],
+[
+"Landfill sequence",
+"Building and apron area first (≈ 56,960 m³), finished before piling by 22 Oct; rest of site by 15 Nov"
+],
+[
+"Slab piles FS1 (I-0.30 × 18 m)",
+"1,561 nos · S1-01"
+],
+[
+"Pile cap piles",
+"437 nos (I-0.26: 354, I-0.30: 83) · S1-01"
+],
+[
+"Total pile length",
+"≈ 35,964 m (18 m modelled; drawings 16–18 m)"
+],
+[
+"Safe load",
+"I-0.30: 40 t/pile, I-0.26: 35 t/pile, FS 2.5 · pile schedule"
+],
+[
+"Slab pile grid",
+"3.30 × 3.30 m on-pile flat slab · S5-03"
+]
+],
+"seq": [
+"Set out the site boundary and grids A–J / 1–7 from the survey control; record the existing ground level (−1.20 m).",
+"Clear the site and fill the building and apron area first, placing and compacting in layers from −1.20 m to +1.30 m; finish it before the piling rig arrives.",
+"Fill the rest of the site inside the boundary while piling starts, keeping truck routes clear of the rig; all landfill finished in month 1.",
+"Set out every pile point on the compacted fill and keep a level access route for the rig.",
+"Drive pile cap piles first, working bay by bay from grid A towards grid J.",
+"Drive the FS1 slab piles on the 3.30 m grid, row by row from grid 1 towards grid 7.",
+"Record blow counts and final set for every pile; splice and weld where piles are joined.",
+"Survey pile positions and cut-off levels; report any pile out of tolerance to the engineer."
+],
+"plant": [
+"Excavators, dump trucks and vibratory rollers for the landfill",
+"Drop hammer or hydraulic piling rig",
+"Mobile crane for pile handling",
+"Total station for set-out",
+"Welding set for pile splices"
+],
+"qc": [
+"HOLD: fill level +1.30 m and compaction tests passed before the rig moves onto each area (confirm from spec)",
+"HOLD: pile set criteria and final set approved before production piling (confirm from spec)",
+"Position tolerance and verticality checked on every pile (confirm from spec)",
+"Pile load test, number and type (confirm from spec)",
+"Piling record sheet signed for each bay"
+],
+"safe": [
+"Trucks and rollers kept apart with a banksman; fill edges kept stable",
+"Exclusion zone around the rig and the lifting radius",
+"Ground bearing checked under rig tracks",
+"Pile pitching with tag lines; nobody under a suspended pile",
+"Hearing protection near the hammer"
+],
+"flag": "Pile length is given as 16.00–18.00 m on the drawings without a length per pile. The model and quantities use 18 m; confirm lengths from the pile schedule or test piles. The east fence on S1-01 runs off the sheet just before the south-east corner; it is extended to meet the south fence. The fill top at +1.30 m is above the driveway level ±0.00 on the drawings; confirm both use the same datum.",
+"cam": [
+[
+115,
+60,
+120
+],
+[
+0,
+-7,
+0
+]
+],
+"close": [
+[
+-92,
+11,
+-67
+],
+[
+-79,
+-5,
+-54
+]
+]
+},
+{
+"t": "Pile caps & pedestals",
+"short": "Pile caps",
+"stage": 2,
+"lead": "Cut piles to level, cast the pile caps and the column pedestals that will receive the steel columns.",
+"scope": [
+[
+"Pile caps",
+"F1A: 124, F2A: 115, F2B: 40, F3B: 1 · S1-02"
+],
+[
+"Pile cap concrete",
+"119.7 m³ (net, model)"
+],
+[
+"Pedestals C3 (0.60 × 0.60)",
+"40 nos · S1-02"
+],
+[
+"Encased columns C4",
+"64 nos to +4.50 · S1-02"
+],
+[
+"Pedestal + C4 concrete",
+"136.0 m³"
+],
+[
+"Materials",
+"fc' 240 ksc (general notes); rebar SD40 / SR24"
+]
+],
+"seq": [
+"Excavate to cap formation level and trim; keep the excavation dry.",
+"Cut piles to cut-off level and expose the reinforcement for anchorage.",
+"Place lean concrete blinding, fix reinforcement and formwork.",
+"Set anchor bolts with templates to grid and level for the steel columns.",
+"Pour and vibrate the pile caps; cure as specified.",
+"Form and pour pedestals and C4 encased columns; backfill and compact in layers."
+],
+"plant": [
+"Excavator",
+"Concrete pump or bucket and crane",
+"Poker vibrators",
+"Anchor-bolt templates and total station"
+],
+"qc": [
+"HOLD: reinforcement and anchor-bolt inspection before each pour",
+"Anchor-bolt position ±3 mm, level checked (confirm from spec)",
+"Concrete cubes / cylinders per pour (confirm from spec)",
+"Cover to reinforcement per general notes table 1"
+],
+"safe": [
+"Edge protection around open excavations",
+"Pile cutting with guards and eye protection",
+"Safe access ladders into excavations",
+"Pump boom and pour area kept clear"
+],
+"cam": [
+[
+105,
+55,
+110
+],
+[
+0,
+-1,
+0
+]
+],
+"close": [
+[
+-55,
+4.5,
+-26
+],
+[
+-63,
+-0.4,
+-36
+]
+]
+},
+{
+"t": "Ground beams & crane platform",
+"short": "Ground beams",
+"stage": 3,
+"lead": "Cast the perimeter ground beams under the walls, then fill and compact the floor area as the crane platform for steel erection.",
+"scope": [
+[
+"Ground beam GB2 0.20 × 1.30",
+"548 m perimeter · S1-02"
+],
+[
+"GB2 concrete",
+"142.5 m³"
+],
+[
+"Crane platform",
+"Compacted fill to underside of slab, compacted sand 0.05 m (not modelled)"
+],
+[
+"Sequencing rule",
+"Floor slab is cast after the steel and roof are complete (stage 6)"
+]
+],
+"seq": [
+"Excavate the ground-beam trenches along grids 1, 7, A and J.",
+"Fix reinforcement, tie into pile caps and corner bars; fix formwork.",
+"Pour ground beams in bays; strip and cure.",
+"Backfill both sides of the beams in compacted layers.",
+"Fill the floor area in layers and compact to the specified density to act as the crane platform.",
+"Proof-roll the platform and mark crane routes before steel erection."
+],
+"plant": [
+"Excavator",
+"Vibratory roller and plate compactor",
+"Concrete truck mixers",
+"Water bowser"
+],
+"qc": [
+"HOLD: reinforcement inspection before each pour",
+"Field density test per layer (confirm from spec)",
+"Platform bearing checked against crane outrigger loads",
+"Top of beam level survey"
+],
+"safe": [
+"Trench edges supported or battered",
+"Traffic plan for fill trucks and rollers",
+"Spotter for reversing plant",
+"Dust control by watering"
+],
+"cam": [
+[
+105,
+50,
+110
+],
+[
+0,
+0,
+0
+]
+],
+"close": [
+[
+-94,
+6,
+-69
+],
+[
+-74,
+0.5,
+-49
+]
+]
+},
+{
+"t": "Steel structure",
+"short": "Steel",
+"stage": 4,
+"lead": "Erect the pre-engineered steel frames bay by bay from grid A, then the jack roof posts and the canopy steel.",
+"scope": [
+[
+"PEB columns",
+"104 nos (40 interior, 64 perimeter)"
+],
+[
+"PEB rafters",
+"10 frames on grids A–J, ridge on grid 4"
+],
+[
+"Jack roof posts",
+"20 nos"
+],
+[
+"Canopy rafters / tie rods",
+"50 / 50 nos, 6.10 m canopies"
+],
+[
+"Materials",
+"Steel SS400; bolts A325 / class 8.8; non-shrink grout under base plates"
+],
+[
+"Note",
+"Member sizes are PEB supplier design; sizes in model are assumed"
+]
+],
+"seq": [
+"Check anchor-bolt survey and grout pads; release the area to the steel erector.",
+"Erect the first two frames at grid A with bracing to form a stable braced bay.",
+"Continue frame by frame towards grid J: columns, then rafters, bolted at the ridge on grid 4.",
+"Install bracing and eave struts in each bay as erection proceeds.",
+"Plumb, line and level the frames; tighten bolts to the specified torque.",
+"Erect jack roof posts and canopy rafters with tie rods; grout base plates."
+],
+"plant": [
+"Mobile cranes (two for rafter lifts)",
+"Boom lifts / scissor lifts",
+"Torque wrenches",
+"Total station for plumbing"
+],
+"qc": [
+"HOLD: first braced bay checked before continuing",
+"Bolt tightening and torque record (confirm from spec)",
+"Plumb and alignment tolerance (confirm from spec)",
+"Weld and paint inspection on site touch-ups"
+],
+"safe": [
+"Lift plan for every rafter lift; tag lines",
+"Full-body harness on MEWPs and at height",
+"Temporary bracing kept until permanent bracing is in",
+"Wind limit for lifting (confirm from spec)"
+],
+"cam": [
+[
+150,
+70,
+150
+],
+[
+0,
+7,
+0
+]
+],
+"close": [
+[
+-48,
+20,
+-88
+],
+[
+-72,
+9,
+-52
+]
+]
+},
+{
+"t": "Roof sheet",
+"short": "Roof",
+"stage": 5,
+"lead": "Fix purlins and the metal roof with insulation, then the jack roof, skylights, gutters, downpipes and the canopy sheets.",
+"scope": [
+[
+"Purlins",
+"75 lines × 162 m at 1.50 m"
+],
+[
+"Main roof sheet",
+"≈ 18,400 m² (162.6 × 113.0 m incl. overhang) · A1-03"
+],
+[
+"Jack roof",
+"145.20 × 16.00 m ≈ 2,323 m², edges +18.20, ridge +18.60 · A3-01"
+],
+[
+"Skylight strips",
+"18 strips, ≈ 865 m²"
+],
+[
+"Eave gutters / downpipes",
+"2 × 162 m / 20 nos RD 8\""
+],
+[
+"Canopy sheet",
+"≈ 2,440 m², 6.10 m deep · A1-01"
+],
+[
+"Material",
+"Metal sheet AZ150 with PU insulation · A0-01 spec"
+]
+],
+"seq": [
+"Fix purlins and sag rods bay by bay, following the steel.",
+"Install safety mesh and insulation under the sheet.",
+"Lay roof sheets from the eave up to the ridge, starting at grid A and working towards grid J.",
+"Build the jack roof: louver walls, fascia, soffit and jack roof sheet.",
+"Install skylight strips, ridge cap, barge flashings and eave gutter boxes; connect downpipes.",
+"Sheet the canopies and fix flashings; water-test the roof."
+],
+"plant": [
+"Mobile crane for sheet bundles",
+"Boom lifts",
+"Sheet seaming / screw guns",
+"Roof walkways and edge protection"
+],
+"qc": [
+"HOLD: purlin line and level before sheeting",
+"Fixing pattern and lap per manufacturer (confirm from spec)",
+"Water test of roof and gutters",
+"Skylight sealing check"
+],
+"safe": [
+"Edge protection and safety mesh before anyone works on the roof",
+"Harness with lifelines on the roof",
+"Fragile skylight zones marked and protected",
+"Stop work in high wind or rain"
+],
+"cam": [
+[
+150,
+110,
+150
+],
+[
+0,
+8,
+0
+]
+],
+"close": [
+[
+-106,
+30,
+-30
+],
+[
+-74,
+15,
+2
+]
+]
+},
+{
+"t": "Ground slab",
+"short": "Slab",
+"stage": 6,
+"lead": "With the building closed overhead, cast the on-pile flat slab with its drop panels and dock leveler pits, then the loading aprons.",
+"scope": [
+[
+"FS1 flat slab 250 mm",
+"162 × 112 m = 18,144 m², 4,536 m³ · S5-03"
+],
+[
+"Drop panels",
+"1,561 nos 0.65 × 0.65 m · S5-01"
+],
+[
+"Dock leveler pits",
+"24 nos · S1-02, A8-01"
+],
+[
+"Loading aprons FS2",
+"≈ 4,016 m² at +0.20 · S1-02"
+],
+[
+"Materials",
+"FS1 fc' 350 ksc, LL 3,000 kg/m² · S5-03; armour joints"
+]
+],
+"seq": [
+"Trim and compact the sub-base; place compacted sand 0.05 m and membrane.",
+"Cut slab piles to level and form drop panels over each pile.",
+"Form dock leveler pits with embedded angles and conduits (A8-01).",
+"Fix top and bottom reinforcement; set armour joints and pour bay boundaries.",
+"Pour the slab in bays with laser screed; finish and cure.",
+"Cast loading aprons and approach slabs outside the dock walls."
+],
+"plant": [
+"Laser screed",
+"Concrete pumps",
+"Power floats",
+"Curing equipment"
+],
+"qc": [
+"HOLD: reinforcement, pit embeds and joint layout before each pour",
+"Floor flatness and level (confirm from spec)",
+"Concrete testing per pour (confirm from spec)",
+"Pit size 2.04 × 3.02 × 0.60 m checked against leveler supplier"
+],
+"safe": [
+"Pour sequence and access routes planned inside the building",
+"Rebar caps on starter bars",
+"Ventilation for powered equipment indoors",
+"Barriers around open pits"
+],
+"cam": [
+[
+-74,
+3.4,
+48
+],
+[
+20,
+2.2,
+-30
+]
+],
+"close": [
+[
+-104,
+5,
+-82
+],
+[
+-74,
+1.5,
+-48
+]
+],
+"inside": true
+},
+{
+"t": "Walls & cladding",
+"short": "Walls",
+"stage": 7,
+"lead": "Build the block walls with piers to +4.50, then the louver band and the metal sheet walls up to the gutter.",
+"scope": [
+[
+"Block wall LWB 200",
+"≈ 382 m² (net of openings) FFL to +4.50 · A2"
+],
+[
+"Metal louver band",
+"≈ 1,151 m², +4.50 to +6.60 · A2 tag 4"
+],
+[
+"Metal sheet wall",
+"≈ 3,669 m², +6.60 to +12.75 incl. gables · A2 tag 5"
+],
+[
+"Canopy ceiling",
+"≈ 2,384 m² · A0-01"
+]
+],
+"seq": [
+"Set out wall lines and openings from the door schedule (A6).",
+"Build block walls and piers with lintels over the shutter openings.",
+"Fix girts for the louver band and the metal sheet walls.",
+"Install louvers with insect screen, then the metal sheet walls up to the gutter.",
+"Fix corner trims and flashings; seal laps.",
+"Install canopy ceilings."
+],
+"plant": [
+"Scaffold or mast climbers",
+"Boom lifts",
+"Mortar mixer",
+"Sheet handling crane"
+],
+"qc": [
+"Wall plumb and opening sizes checked against shutter supplier",
+"Lintel and tie-in to columns (confirm from spec)",
+"Sheet fixing and sealing checked",
+"Louver orientation and screen continuity"
+],
+"safe": [
+"Scaffold inspection tags",
+"Harness on MEWPs",
+"Sheet handling in wind",
+"Exclusion zone below work at height"
+],
+"flag": "Block wall height: the plan note and the elevations differ. The model uses block to +4.50 from the elevations (A2); the BOQ should be updated to match once confirmed.",
+"cam": [
+[
+150,
+38,
+170
+],
+[
+0,
+6,
+0
+]
+],
+"close": [
+[
+-21,
+5,
+-86
+],
+[
+-6,
+4.5,
+-56
+]
+]
+},
+{
+"t": "Annex buildings",
+"short": "Annex",
+"stage": 8,
+"lead": "Build the office (1F and 2F strips over the aprons), support blocks, pump room and small site buildings.",
+"scope": [
+[
+"RC columns (C1, C2, CS)",
+"89 nos · S1-02"
+],
+[
+"Ground-floor slabs",
+"≈ 1,512 m²"
+],
+[
+"2F composite slab SM1",
+"≈ 1,512 m² on metal deck · S1-03"
+],
+[
+"Wall pieces",
+"181 (LWB 100 / 200)"
+],
+[
+"Buildings",
+"Office 1F/2F, NW/NE support blocks, SW pump & tank, guardhouse, garbage, 2 rest areas, workshop"
+]
+],
+"seq": [
+"Cast RC columns and beams of the support blocks and office frame.",
+"Cast ground-floor slabs.",
+"Lay metal deck and cast the 2F composite slab SM1.",
+"Build block walls and partitions.",
+"Cast RC roofs; fix the workshop steel roof and chain link.",
+"Waterproof roofs and complete services rough-in."
+],
+"plant": [
+"Mobile crane",
+"Concrete pump",
+"Formwork and props",
+"Scaffold"
+],
+"qc": [
+"HOLD: formwork and reinforcement before each pour",
+"Prop removal only after strength reached (confirm from spec)",
+"Roof waterproofing flood test",
+"Wall alignment with warehouse grids"
+],
+"safe": [
+"Edge protection on 2F and roofs",
+"Propping design checked",
+"Safe access stairs or towers",
+"Separate traffic from warehouse works"
+],
+"cam": [
+[
+200,
+65,
+150
+],
+[
+45,
+4,
+20
+]
+],
+"close": [
+[
+118,
+9,
+92
+],
+[
+92,
+7,
+58
+]
+]
+},
+{
+"t": "Doors, windows & dock equipment",
+"short": "Doors & docks",
+"stage": 9,
+"lead": "Fit the rolling shutters, steel doors and windows, install the dock levelers, bumpers and bollards, and finish the site paving.",
+"scope": [
+[
+"Rolling shutters",
+"RSD1: 8, RSD2: 43, RSD3: 2, RSD4: 2 · A6-01/02"
+],
+[
+"Steel doors SD1",
+"9 nos · A6-01"
+],
+[
+"Windows / glazed doors",
+"AD1: 1, AD4: 1, AD4W: 1, AW1: 19, AW2: 2, AW3: 4, AW4: 10, AW5: 7, AW6: 2 · A6-02"
+],
+[
+"Dock levelers",
+"24 nos hydraulic 2.0 × 3.0 m, 6 t · A8-01/02"
+],
+[
+"Bumpers / bollards",
+"48 / 86 nos · A8-02/03"
+],
+[
+"Site paving",
+"≈ external works area (approx.)"
+]
+],
+"seq": [
+"Install shutter guide rails, coil hoods and curtains; wire motors and push buttons.",
+"Hang steel doors and glazed doors; install windows with sealant.",
+"Place dock levelers in the pits, weld curb angles and connect the hydraulic power.",
+"Fix rubber bumpers and bollards; paint safety lines.",
+"Test and commission shutters and levelers.",
+"Complete site paving, drainage and line marking."
+],
+"plant": [
+"Forklift / small crane for levelers",
+"Scissor lifts",
+"Welding set",
+"Paving plant"
+],
+"qc": [
+"Shutter and leveler commissioning record",
+"Leveler level with FFL and lip operation",
+"Window water test",
+"HOLD: handover inspection"
+],
+"safe": [
+"Lock-out / tag-out during commissioning",
+"Guarding of open pits until levelers are in",
+"Hot-work permits for welding",
+"Traffic management on the dock aprons"
+],
+"flag": "Dock shutter RSD2: schedule text says 8250 × 6000, but the schedule dimensions and section A show 3.00 m high. The model uses 3.00 m; confirm with the architect before ordering shutters.",
+"cam": [
+[
+45,
+35,
+-160
+],
+[
+0,
+3,
+-56
+]
+],
+"close": [
+[
+-22,
+4.6,
+-72
+],
+[
+-12,
+1.6,
+-57
+]
+]
+}
+];
+</script>
+<script src="model.js"></script>
+<script src="sched.js"></script>
+<script>
+window.STC.labels.steel='Structural steel & purlins';
+const STC=window.STC, S=window.S, NST=S.length-1, TOTAL=Object.values(STC.stageN).reduce((a,b)=>a+b,0);
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt=n=>n.toLocaleString('en-US');
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const SPEC='confirm from spec';
+let cur=0, useClose=false, anim=null, prog=1, mode='stage', curM=1;
+const SCH=window.SCH, NM=SCH.months.length;
+const U={uT:{value:1e9},uT0:{value:-1},uOn:{value:0},uGrey:{value:null}};
+const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const dfmt=s=>{const [y,m,d]=s.split('-');return `${+d} ${MON[m-1]} ${y}`}, dshort=s=>{const [y,m,d]=s.split('-');return `${+d} ${MON[m-1]}`};
+
+/* ---------- three.js scene ---------- */
+const host=$('view');
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2)); renderer.outputEncoding=THREE.sRGBEncoding;
+host.prepend(renderer.domElement);
+const scene=new THREE.Scene();
+const cam=new THREE.PerspectiveCamera(40,1,0.3,3000);
+const ctl=new THREE.OrbitControls(cam,renderer.domElement); ctl.enableDamping=true; ctl.maxPolarAngle=Math.PI*0.62;
+scene.add(new THREE.HemisphereLight(0xf2f5f7,0x6b6a60,0.7));
+const sun=new THREE.DirectionalLight(0xffffff,0.75); sun.position.set(120,200,160); scene.add(sun);
+const fill=new THREE.DirectionalLight(0xffffff,0.25); fill.position.set(-150,80,-120); scene.add(fill);
+const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(700,700),new THREE.MeshLambertMaterial({color:0x9aa293,transparent:true,opacity:1}));
+ground.rotation.x=-Math.PI/2; ground.position.y=-0.03; ground.renderOrder=2; scene.add(ground);
+function theme(){scene.background=new THREE.Color(css('--sky')||'#dde5e9');ground.material.color.set(css('--ground')||'#9aa293').convertSRGBToLinear()}
+theme(); matchMedia('(prefers-color-scheme: dark)').addEventListener('change',theme);
+new MutationObserver(theme).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+
+/* grid lines and bubbles (A–J west→east, 1–7 north→south) */
+(function grids(){
+  const g=STC.grids, pts=[], ext=10, x0=g.x[0][1], x1=g.x[g.x.length-1][1], z0=g.y[0][1], z1=g.y[g.y.length-1][1];
+  g.x.forEach(([,x])=>pts.push(x,0.02,z0-ext,x,0.02,z1+ext)); g.y.forEach(([,z])=>pts.push(x0-ext,0.02,z,x1+ext,0.02,z));
+  const geo=new THREE.BufferGeometry(); geo.setAttribute('position',new THREE.Float32BufferAttribute(pts,3));
+  scene.add(new THREE.LineSegments(geo,new THREE.LineBasicMaterial({color:0x6a5a4a,transparent:true,opacity:.55})));
+  const bub=(t,x,z)=>{const c=document.createElement('canvas');c.width=c.height=96;const k=c.getContext('2d');
+    k.fillStyle='#fff';k.strokeStyle='#2a2a2a';k.lineWidth=5;k.beginPath();k.arc(48,48,42,0,7);k.fill();k.stroke();
+    k.fillStyle='#1c2320';k.font='600 50px IBM Plex Sans Condensed, Arial';k.textAlign='center';k.textBaseline='middle';k.fillText(t,48,51);
+    const tx=new THREE.CanvasTexture(c);tx.encoding=THREE.sRGBEncoding;
+    const s=new THREE.Sprite(new THREE.SpriteMaterial({map:tx,depthTest:false,sizeAttenuation:false}));s.scale.set(.032,.032,1);s.position.set(x,2.4,z);s.renderOrder=10;scene.add(s)};
+  g.x.forEach(([t,x])=>{bub(t,x,z0-ext-2.5);bub(t,x,z1+ext+2.5)}); g.y.forEach(([t,z])=>{bub(t,x0-ext-2.5,z);bub(t,x1+ext+2.5,z)});
+})();
+
+/* site boundary (STR S1-01 site fence) as a red kerb at landfill level */
+(function boundary(){
+  const P=STC.boundary||[], y=(STC.fillz||0)+0.25, mat=new THREE.MeshBasicMaterial({color:0xc0392b});
+  for(let i=0;i<P.length;i++){const [x0,z0]=P[i],[x1,z1]=P[(i+1)%P.length],L=Math.hypot(x1-x0,z1-z0);
+    const m=new THREE.Mesh(new THREE.BoxGeometry(L,0.5,0.7),mat); m.position.set((x0+x1)/2,y,(z0+z1)/2); m.rotation.y=-Math.atan2(z1-z0,x1-x0); m.renderOrder=3; scene.add(m)}
+})();
+
+function size(){const r=host.getBoundingClientRect();renderer.setSize(r.width,r.height,false);cam.aspect=r.width/Math.max(r.height,1);cam.updateProjectionMatrix()}
+new ResizeObserver(size).observe(host); size();
+
+/* camera presets with narrow-screen pull-back and a short glide */
+let glide=null;
+function goCam(close){
+  const st=mode==='month'?S[SCH.months[curM-1].cam]:S[cur], pre=close?st.close:st.cam; let p=new THREE.Vector3(...pre[0]); const t=new THREE.Vector3(...pre[1]);
+  if(!close && !st.inside && cam.aspect<1.3){p=t.clone().add(p.clone().sub(t).multiplyScalar(Math.pow(1.3/cam.aspect,0.6)))}
+  $('vOver').setAttribute('aria-pressed',!close); $('vClose').setAttribute('aria-pressed',close); useClose=close;
+  if(reduce){cam.position.copy(p);ctl.target.copy(t);ctl.update();return}
+  glide={t0:performance.now(),p0:cam.position.clone(),t0v:ctl.target.clone(),p,t};
+}
+
+/* ---------- staged model ---------- */
+const NODES=[]; let picked=null;
+const GREY=new THREE.Color('#a4aaae').convertSRGBToLinear(); U.uGrey.value=GREY;
+function fade(n,on){const m=n.mesh.material; if(n.faded===on) return; n.faded=on;
+  m.transparent=on||n.t0; m.opacity=on?n.o0*0.62:n.o0; m.depthWrite=on?false:n.d0; m.needsUpdate=true;}
+// landfill: solid while it is the current work, then a faint skin so the foundations below stay visible
+function fillLook(n,cur){const m=n.mesh.material; m.transparent=true; m.opacity=cur?n.o0:0.1; m.depthWrite=false; m.needsUpdate=true; n.faded=null}
+function partialFaces(list,shown){ // entries with rank < shown -> faces drawn
+  let lo=0,hi=list.length; while(lo<hi){const m=(lo+hi)>>1; if(list[m][2]<shown) lo=m+1; else hi=m}
+  return lo?list[lo-1][0]:0;
+}
+function applyStage(){
+  if(mode==='month') return applyMonth();
+  U.uOn.value=0;
+  // overview: complete model, or the whole build replayed stage by stage
+  let st=cur, sub=prog, greyOn=$('grey').checked, all=false;
+  if(cur===0){ all=true; greyOn=false; if(prog>=1){st=NST+1;sub=1} else {const v=prog*NST; st=Math.min(NST,Math.floor(v)+1); sub=v-(st-1)} }
+  const shown=st<=NST?Math.ceil(sub*STC.stageN[st]):0;
+  for(const n of NODES){
+    const vis=n.stage<=st; n.mesh.visible=vis; if(!vis) continue;
+    const m=n.mesh.material;
+    if(n.stage<st){ n.geo.setDrawRange(0,Infinity); m.color.copy(greyOn?n.c.clone().lerp(GREY,.7):n.c); fade(n,greyOn); }
+    else { n.drawn=partialFaces(n.list,shown); n.geo.setDrawRange(0,n.drawn*3); m.color.copy(n.c); fade(n,false); }
+  }
+  for(const n of NODES) if(n.group==='fill'&&n.mesh.visible) fillLook(n,st===1&&!(cur===0&&prog>=1));
+  // see-through ground: clear for below-ground stages, half see-through later so piles, caps and ground beams stay visible
+  const below=(cur>=1&&cur<=3)||(cur===0&&prog<1&&st<=3), later=cur>=4||(cur===0&&prog<1&&st>3);
+  ground.material.opacity=below?0.28:later?0.5:1; ground.material.depthWrite=!(below||later);
+  if(cur===0){ const built=prog>=1?TOTAL:Object.entries(STC.stageN).reduce((a,[k,v])=>a+(+k<st?v:+k==st?shown:0),0);
+    $('count').textContent=prog>=1?`${fmt(TOTAL)} elements · 9 stages`:`Stage ${st} · ${fmt(built)} / ${fmt(TOTAL)} elements`;
+    $('fill').style.width=(prog*100)+'%'; }
+  else { $('count').textContent=`${fmt(shown)} / ${fmt(STC.stageN[cur])} elements in this stage`; $('fill').style.width=(prog*100)+'%'; }
+  if(picked!==null && !pickedVisible()) closePick();
+}
+function play(){ if(reduce){prog=1;applyStage();return} prog=0; anim={t0:performance.now(),dur:mode==='stage'&&cur===0?9000:6000}; applyStage(); }
+
+/* ---------- month view: elements appear on their scheduled dates (shader discards later work) ---------- */
+function applyMonth(){
+  const M=SCH.months[curM-1], t=M.A+prog*(M.B-M.A), greyOn=$('grey').checked;
+  U.uOn.value=1; U.uT.value=t; U.uT0.value=greyOn?M.A:-1;
+  for(const n of NODES){ n.mesh.visible=true; n.geo.setDrawRange(0,Infinity); n.mesh.material.color.copy(n.c); fade(n,false); }
+  ground.material.opacity=curM<=3?0.28:0.5; ground.material.depthWrite=false;
+  for(const n of NODES) if(n.group==='fill'){const e=Math.max(...n.list.map(([,k])=>SCH.ex[k]>=0?SCH.ex[k]:SCH.et[k])); fillLook(n,e>M.A);}
+  let now=0, inPlace=0; for(let k=0;k<SCH.et.length;k++){const e=SCH.ex[k]>=0?SCH.ex[k]:SCH.et[k]; if(e<=t){inPlace++; if(e>M.A) now++;}}
+  $('count').textContent=`${fmt(now)} elements built this month · ${fmt(inPlace)} / ${fmt(TOTAL)} in place`;
+  $('fill').style.width=(prog*100)+'%';
+  if(picked!==null && !pickedVisible()) closePick();
+}
+function hookShader(m){
+  m.customProgramCacheKey=()=>'g5sched';
+  m.onBeforeCompile=sh=>{ Object.assign(sh.uniforms,U);
+    sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nattribute float aT; attribute float aX; varying float vT; varying float vX; varying float vWx;')
+      .replace('#include <begin_vertex>','#include <begin_vertex>\nvT=aT; vX=aX; vWx=(modelMatrix*vec4(transformed,1.0)).x;');
+    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float uT; uniform float uT0; uniform float uOn; uniform vec3 uGrey; varying float vT; varying float vX; varying float vWx;')
+      .replace('#include <color_fragment>','#include <color_fragment>\nfloat tt = vX>=0.0 ? mix(vT,vX,clamp((vWx+81.0)/162.0,0.0,1.0)) : vT;\nif(uOn>0.5 && tt>uT) discard;\nif(uOn>0.5 && tt<=uT0) diffuseColor.rgb=mix(diffuseColor.rgb,uGrey,0.7);');
+  };
+}
+function timeAttrs(n){
+  const g=n.geo, idx=g.index, nv=g.attributes.position.count, aT=new Float32Array(nv), aX=new Float32Array(nv).fill(-1);
+  let f0=0; for(const [fe,k] of n.list){ for(let f=f0;f<fe;f++) for(let j=0;j<3;j++){const v=idx?idx.array[3*f+j]:3*f+j; aT[v]=SCH.et[k]; aX[v]=SCH.ex[k];} f0=fe; }
+  g.setAttribute('aT',new THREE.BufferAttribute(aT,1)); g.setAttribute('aX',new THREE.BufferAttribute(aX,1));
+}
+
+/* ---------- picking ---------- */
+const ray=new THREE.Raycaster(), mouse=new THREE.Vector2(); let down=null;
+renderer.domElement.addEventListener('pointerdown',e=>{down=[e.clientX,e.clientY]});
+renderer.domElement.addEventListener('pointerup',e=>{
+  if(!down||Math.hypot(e.clientX-down[0],e.clientY-down[1])>5) return;
+  const r=renderer.domElement.getBoundingClientRect(); mouse.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);
+  ray.setFromCamera(mouse,cam);
+  const hits=ray.intersectObjects(NODES.filter(n=>n.mesh.visible).map(n=>n.mesh),false);
+  const elemOf=h=>{const n=h.object.userData.node,f=h.faceIndex; let lo=0,hi=n.list.length-1; while(lo<hi){const m=(lo+hi)>>1; if(n.list[m][0]>f) hi=m; else lo=m+1} return n.list[lo][1]};
+  const okHits=hits.filter(h=>{const n=h.object.userData.node; if(mode==='month') return SCH.et[elemOf(h)]<=U.uT.value; return n.geo.drawRange.count===Infinity||h.faceIndex<n.geo.drawRange.count/3});
+  if(mode==='stage'&&cur>0&&$('grey').checked){const c=okHits.filter(h=>h.object.userData.node.stage===cur); if(c.length) okHits.splice(0,okHits.length,...c)}
+  for(const h of okHits){ const n=h.object.userData.node, f=h.faceIndex;
+    let lo=0,hi=n.list.length-1; while(lo<hi){const m=(lo+hi)>>1; if(n.list[m][0]>f) hi=m; else lo=m+1}
+    showPick(n.list[lo][1]); return; }
+  closePick();
+});
+function showPick(k){
+  picked=k; const [name,mark,src,vol,ifc,bld,stg]=STC.info[k];
+  $('pick').innerHTML=`<button class="x" aria-label="Close" onclick="closePick()">×</button><b>${esc(name)}</b><dl>
+    <dt>Mark</dt><dd>${esc(mark||'–')}</dd><dt>IFC class</dt><dd>${esc(ifc)}</dd><dt>Stage</dt><dd>${stg} · ${esc(S[stg].t)}</dd>
+    ${mode==='month'?`<dt>Scheduled</dt><dd>${schedDate(k)}</dd>`:''}<dt>Volume</dt><dd>${(+vol).toFixed(3)} m³</dd><dt>Building</dt><dd>${esc(bld)}</dd><dt>Source</dt><dd>${esc(STC.src[src]||'')}</dd></dl>`;
+  $('pick').hidden=false;
+}
+function schedDate(k){const d=new Date(SCH.start+'T00:00:00'); d.setDate(d.getDate()+Math.ceil(SCH.ex[k]>=0?SCH.ex[k]:SCH.et[k])-1); return `by ${d.getDate()} ${MON[d.getMonth()]} ${d.getFullYear()}`}
+function closePick(){picked=null;$('pick').hidden=true}
+function pickedVisible(){ if(mode==='month') return SCH.et[picked]<=U.uT.value; const s=STC.info[picked][6]; return cur===0?true:s<=cur}
+
+/* ---------- sheet ---------- */
+const chip=s=>esc(s).replace(/\(confirm from spec\)/g,`<span class="tag">${SPEC}</span>`);
+const qcItem=s=>s.startsWith('HOLD:')?`<span class="tag hold">HOLD POINT</span>${chip(s.slice(5).trim())}`:chip(s);
+function sheet(){
+  if(mode==='month') return monthSheet();
+  const st=S[cur], prev=cur>0?S[cur-1]:null, next=cur<NST?S[cur+1]:null;
+  const pn=`<div class="pn">${prev?`<button onclick="setStage(${cur-1})"><small>← ${cur-1?'Stage '+(cur-1):'Overview'}</small>${esc(prev.short)}</button>`:''}${next?`<button onclick="setStage(${cur+1})"><small>Stage ${cur+1} →</small>${esc(next.short)}</button>`:''}</div>`;
+  const scope=`<table>${st.scope.map(([a,b])=>`<tr><td>${esc(a)}</td><td>${chip(b)}</td></tr>`).join('')}</table>`;
+  if(cur===0){
+    $('sheet').innerHTML=`<div><div class="eyebrow">Overview · ${NST} stages · ${fmt(TOTAL)} elements</div><h1>${esc(st.t)}</h1><p class="lead">${esc(st.lead)}</p></div>
+      <section><h2>Key facts</h2>${scope}</section>
+      <section><h2>Build stages <span>elements</span></h2><div class="stagelist">${S.slice(1).map((s,i)=>`<button onclick="setStage(${i+1})"><span class="k">${String(i+1).padStart(2,'0')}</span><span>${esc(s.t)}</span><span class="n">${fmt(STC.stageN[i+1])}</span></button>`).join('')}</div></section>
+      <p class="note">${esc(st.note)}</p>${pn}`;
+  } else {
+    $('sheet').innerHTML=`<div><div class="eyebrow">Stage ${cur} of ${NST}</div><h1>${esc(st.t)}</h1><p class="lead">${esc(st.lead)}</p></div>
+      <section><h2>Scope <span>from model</span></h2>${scope}</section>
+      ${st.flag?`<div class="flag"><strong>Open design point</strong>${esc(st.flag)}</div>`:''}
+      <section><h2>Sequence of work</h2><ol>${st.seq.map(s=>`<li><span>${chip(s)}</span></li>`).join('')}</ol></section>
+      <div class="cols">
+        <section><h2>Plant &amp; equipment</h2><ul>${st.plant.map(s=>`<li><span>${chip(s)}</span></li>`).join('')}</ul></section>
+        <section><h2>Checks &amp; hold points</h2><ul>${st.qc.map(s=>`<li><span>${qcItem(s)}</span></li>`).join('')}</ul></section>
+        <section><h2>Safety</h2><ul>${st.safe.map(s=>`<li><span>${chip(s)}</span></li>`).join('')}</ul></section>
+      </div>${pn}`;
+  }
+  $('sheet').parentElement.scrollTop=0;
+}
+function legend(){
+  if(mode==='month'){ $('legend').innerHTML=`<h3>Month ${curM} · build state</h3><div><span class="sw" style="background:#c2551f"></span><span>Built this month (own colours)</span></div><div><span class="sw" style="background:#a4aaae"></span><span>Built in earlier months${$('grey').checked?' (grey)':''}</span></div><div><span class="sw" style="background:transparent"></span><span>Later work is hidden</span></div>`; legH(); return }
+  const groups=new Set(NODES.filter(n=>cur===0||n.stage===cur).map(n=>n.group));
+  if(cur===0){$('legend').innerHTML=`<h3>Complete model</h3><div style="display:block;max-width:220px">Each element shows in its own material colour. Pick a stage to see it built on top of the finished work.</div>`;legH();return}
+  let h=`<h3>Stage ${cur} · this stage</h3>`+[...groups].map(g=>`<div><span class="sw" style="background:${STC.colors[g]}"></span><span>${esc(STC.labels[g]||g)}</span></div>`).join('');
+  if(cur>1) h+=`<div><span class="sw" style="background:${$('grey').checked?'color-mix(in srgb,#a4aaae 62%,transparent)':'linear-gradient(135deg,#335c9e 50%,#b8b8b2 50%)'}"></span><span>Finished stages 1–${cur-1}${$('grey').checked?' (faded grey)':''}</span></div>`;
+  $('legend').innerHTML=h; legH();
+}
+let legMin=matchMedia('(max-width:860px)').matches;
+function legH(){const L=$('legend'),t=L.querySelector('h3'); L.insertAdjacentHTML('beforeend','<div><span class="sw" style="background:#c0392b;height:4px;align-self:center"></span><span>Site boundary (S1-01)</span></div>'); L.classList.toggle('min',legMin); t.setAttribute('role','button'); t.tabIndex=0; t.title=legMin?'Show legend':'Hide legend'; t.insertAdjacentText('beforeend',legMin?' ▸':' ▾'); t.onclick=()=>{legMin=!legMin;legend()}}
+function tabs(){
+  if(mode==='month'){ $('tabs').innerHTML=SCH.months.map(M=>`<button class="${M.n===curM?'cur':M.n<curM?'done':''}" aria-current="${M.n===curM?'step':'false'}" onclick="setMonth(${M.n})"><span class="k">M${M.n}</span>${MON[+M.a.slice(5,7)-1]} ${M.a.slice(2,4)}</button>`).join(''); $('tabs').children[curM-1].scrollIntoView({block:'nearest',inline:'nearest'}); return }
+  $('tabs').innerHTML=S.map((s,i)=>`<button class="${i===cur?'cur':i<cur&&i>0?'done':''}" aria-current="${i===cur?'step':'false'}" onclick="setStage(${i})">${i?`<span class="k">${i}</span>`:''}${esc(s.short)}</button>`).join('');
+  $('tabs').children[cur].scrollIntoView({block:'nearest',inline:'nearest'});
+}
+function setStage(i,first){
+  cur=Math.max(0,Math.min(NST,i)); closePick(); tabs(); sheet(); legend();
+  try{history.replaceState(null,'','#stage'+cur)}catch(e){}
+  goCam(false);
+  if(cur===0){anim=null;prog=1;applyStage()} else play();
+}
+function setMonth(i){
+  curM=Math.max(1,Math.min(NM,i)); closePick(); tabs(); sheet(); legend();
+  try{history.replaceState(null,'','#month'+curM)}catch(e){}
+  goCam(false); play();
+}
+function setMode(m,i){
+  mode=m; $('mStage').setAttribute('aria-pressed',m==='stage'); $('mMonth').setAttribute('aria-pressed',m==='month');
+  $('tabs').setAttribute('aria-label',m==='stage'?'Stages':'Months');
+  if(m==='month') setMonth(i||curM); else { U.uOn.value=0; setStage(i===undefined?cur:i); }
+}
+$('mStage').onclick=()=>{if(mode!=='stage')setMode('stage')}; $('mMonth').onclick=()=>{if(mode!=='month')setMode('month')};
+function monthSheet(){
+  const M=SCH.months[curM-1], prev=curM>1?SCH.months[curM-2]:null, next=curM<NM?SCH.months[curM]:null;
+  const W=400, rowH=13, top=18, H=top+SCH.bars.length*rowH+6, L=88, sx=d=>L+(W-L-4)*d/SCH.end;
+  let svg=`<svg class="tl" viewBox="0 0 ${W} ${H}" role="img" aria-label="Main tasks across months 1 to 8, month ${curM} highlighted">`;
+  svg+=`<rect class="band" x="${sx(M.A)}" y="0" width="${sx(M.B)-sx(M.A)}" height="${H}"/>`;
+  SCH.months.forEach(m=>{svg+=`<line class="grid" x1="${sx(m.A)}" x2="${sx(m.A)}" y1="10" y2="${H}"/><text x="${(sx(m.A)+sx(m.B))/2}" y="9" text-anchor="middle">M${m.n}</text>`});
+  SCH.bars.forEach(([lab,a,b],i)=>{const y=top+i*rowH, on=a<M.B&&b>M.A;
+    svg+=`<text class="lab" x="0" y="${y+8}">${esc(lab)}</text><rect class="bar${on?' on':''}" x="${sx(a)}" y="${y+1}" width="${Math.max(2,sx(Math.min(b,SCH.end))-sx(a))}" height="${rowH-4}" rx="1.5"/>`});
+  svg+='</svg>';
+  const row=r=>`<tr><td>${esc(r[0])}${r[4]?`<br><span class="d3">3D: ${esc(r[4])}</span>`:''}</td><td><span class="d">${dshort(r[1])} – ${dshort(r[2])}</span></td></tr>`;
+  const pn=`<div class="pn">${prev?`<button onclick="setMonth(${curM-1})"><small>← Month ${curM-1}</small>${esc(prev.t)}</button>`:''}${next?`<button onclick="setMonth(${curM+1})"><small>Month ${curM+1} →</small>${esc(next.t)}</button>`:''}</div>`;
+  $('sheet').innerHTML=`<div><div class="eyebrow">Month ${curM} of ${NM} · ${dfmt(M.a)} – ${dfmt(M.b)}</div><h1>${esc(M.t)}</h1><p class="lead">${esc(M.lead)}</p></div>
+    <section><h2>Master schedule <span>months 1–8</span></h2>${svg}</section>
+    <section><h2>Work shown in 3D <span>${fmt(M.built)} elements</span></h2>${M.model.length?`<table class="mt">${M.model.map(row).join('')}</table>`:'<p class="note">No modelled building work finishes this month.</p>'}</section>
+    ${M.flag?`<div class="flag"><strong>Schedule note</strong>${esc(M.flag)}</div>`:''}
+    ${M.miles.length?`<section><h2>Milestones and permits</h2><table class="mt">${M.miles.map(r=>`<tr><td>${esc(r[0])}</td><td><span class="d">${r[1]===r[2]?dshort(r[1]):dshort(r[1])+' – '+dshort(r[2])}</span></td></tr>`).join('')}</table></section>`:''}
+    <section><h2>Other work this month <span>not in the 3D model</span></h2><table class="mt">${M.other.map(r=>row([r[3]&&r[0].length<12?r[3]+' · '+r[0]:r[0],r[1],r[2]])).join('')}</table></section>
+    <p class="note">Dates from master schedule Rev.4 (12.10.69), start ${dfmt(SCH.start)}. Each element appears in 3D when its share of the linked task is finished; tasks run along the building from grid A to J.</p>${pn}`;
+  $('sheet').parentElement.scrollTop=0;
+}
+$('replay').onclick=play; $('vOver').onclick=()=>goCam(false); $('vClose').onclick=()=>goCam(true);
+$('grey').onchange=()=>{applyStage();legend()};
+addEventListener('keydown',e=>{ if(e.target.closest&&e.target.closest('input,textarea'))return;
+  const step=d=>mode==='month'?setMonth(curM+d):setStage(cur+d); if(e.key==='ArrowRight'){step(1);e.preventDefault()} else if(e.key==='ArrowLeft'){step(-1);e.preventDefault()} });
+addEventListener('hashchange',()=>{const m=location.hash.match(/(stage|month)(\d+)/); if(!m) return; if(m[1]==='month'){if(mode!=='month'||+m[2]!==curM) setMode('month',+m[2])} else if(mode!=='stage'||+m[2]!==cur) setMode('stage',+m[2])});
+
+/* ---------- load ---------- */
+const bin=Uint8Array.from(atob(window.GLB_B64||''),c=>c.charCodeAt(0)).buffer;
+new THREE.GLTFLoader().parse(bin,'',g=>{
+  g.scene.traverse(o=>{ if(!o.isMesh) return;
+    let key=STC.nodes[o.name]?o.name:STC.nodes[o.parent&&o.parent.name]?o.parent.name:o.name.replace(/_\d+$/,'');
+    const list=STC.nodes[key]; if(!list) return;
+    const [,stg,group]=key.match(/^s(\d+)_(.+)$/);
+    o.material=o.material.clone(); o.material.side=THREE.DoubleSide; o.material.color.convertSRGBToLinear();
+    hookShader(o.material);
+    const n={mesh:o,geo:o.geometry,list,stage:+stg,group,c:o.material.color.clone(),drawn:0,t0:o.material.transparent,o0:o.material.opacity,d0:o.material.depthWrite,faded:false}; o.userData.node=n; NODES.push(n); timeAttrs(n);
+  });
+  scene.add(g.scene); $('load').remove();
+  const m=location.hash.match(/(stage|month)(\d+)/); if(m&&m[1]==='month') setMode('month',+m[2]); else setStage(m?+m[2]:0,true);
+},()=>{$('load').textContent='The model file could not be loaded.'});
+
+/* ---------- loop ---------- */
+const a=new THREE.Vector3(), b=new THREE.Vector3();
+(function loop(now){
+  requestAnimationFrame(loop);
+  if(anim){ prog=Math.min(1,(now-anim.t0)/anim.dur); applyStage(); if(prog>=1) anim=null; }
+  if(glide){ const k=Math.min(1,(now-glide.t0)/800), e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
+    cam.position.lerpVectors(glide.p0,glide.p,e); ctl.target.lerpVectors(glide.t0v,glide.t,e); if(k>=1) glide=null; }
+  ctl.update(); renderer.render(scene,cam);
+  a.copy(ctl.target).project(cam); b.copy(ctl.target).add(new THREE.Vector3(0,0,-10)).project(cam);
+  const deg=Math.atan2((b.x-a.x)*cam.aspect,(b.y-a.y))*180/Math.PI; if(isFinite(deg)) $('narrow').setAttribute('transform',`rotate(${deg.toFixed(1)})`);
+})(performance.now());
+</script>

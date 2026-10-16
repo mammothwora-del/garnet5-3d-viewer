@@ -957,6 +957,10 @@ ul li::before{content:"";width:6px;height:6px;margin-top:7px;background:var(--mu
 <script src="sched.js"></script>
 <script>
 window.STC.labels.steel='Structural steel & purlins';
+// wall colours from the SketchUp facade design (light grey cladding, darker louver band, office panels, dark grey lower walls)
+const WALLC={clad:'#c4c6c5',louver:'#8b908d',office:'#c1c7c5',brick:'#5f615d',window:'#2b2d2c'};
+Object.assign(window.STC.colors,WALLC);
+const KEEP_FROM=7; // from month 7 the finished walls keep their facade colours instead of turning grey
 const STC=window.STC, S=window.S, NST=S.length-1, TOTAL=Object.values(STC.stageN).reduce((a,b)=>a+b,0);
 const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -1063,7 +1067,7 @@ function play(){ if(reduce){prog=1;applyStage();return} prog=0; anim={t0:perform
 function applyMonth(){
   const M=SCH.months[curM-1], t=M.A+prog*(M.B-M.A), greyOn=$('grey').checked;
   U.uOn.value=1; U.uT.value=t; U.uT0.value=greyOn?M.A:-1;
-  for(const n of NODES){ n.mesh.visible=true; n.geo.setDrawRange(0,Infinity); n.mesh.material.color.copy(n.c); fade(n,false); }
+  for(const n of NODES){ n.mesh.visible=true; n.geo.setDrawRange(0,Infinity); n.mesh.material.color.copy(n.c); fade(n,false); n.mesh.material.userData.keep.value=(curM>=KEEP_FROM&&WALLC[n.group])?1:0; }
   ground.material.opacity=curM<=3?0.28:0.5; ground.material.depthWrite=false;
   for(const n of NODES) if(n.group==='fill'){const e=Math.max(...n.list.map(([,k])=>SCH.ex[k]>=0?SCH.ex[k]:SCH.et[k])); fillLook(n,e>M.A);}
   let now=0, inPlace=0; for(let k=0;k<SCH.et.length;k++){const e=SCH.ex[k]>=0?SCH.ex[k]:SCH.et[k]; if(e<=t){inPlace++; if(e>M.A) now++;}}
@@ -1073,12 +1077,12 @@ function applyMonth(){
   applyDesign();
 }
 function hookShader(m){
-  m.customProgramCacheKey=()=>'g5sched';
-  m.onBeforeCompile=sh=>{ Object.assign(sh.uniforms,U);
+  m.customProgramCacheKey=()=>'g5sched'; m.userData.keep={value:0};
+  m.onBeforeCompile=sh=>{ Object.assign(sh.uniforms,U); sh.uniforms.uKeep=m.userData.keep;
     sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nattribute float aT; attribute float aX; varying float vT; varying float vX; varying float vWx;')
       .replace('#include <begin_vertex>','#include <begin_vertex>\nvT=aT; vX=aX; vWx=(modelMatrix*vec4(transformed,1.0)).x;');
-    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float uT; uniform float uT0; uniform float uOn; uniform vec3 uGrey; varying float vT; varying float vX; varying float vWx;')
-      .replace('#include <color_fragment>','#include <color_fragment>\nfloat tt = vX>=0.0 ? mix(vT,vX,clamp((vWx+81.0)/162.0,0.0,1.0)) : vT;\nif(uOn>0.5 && tt>uT) discard;\nif(uOn>0.5 && tt<=uT0) diffuseColor.rgb=mix(diffuseColor.rgb,uGrey,0.7);');
+    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float uT; uniform float uT0; uniform float uOn; uniform float uKeep; uniform vec3 uGrey; varying float vT; varying float vX; varying float vWx;')
+      .replace('#include <color_fragment>','#include <color_fragment>\nfloat tt = vX>=0.0 ? mix(vT,vX,clamp((vWx+81.0)/162.0,0.0,1.0)) : vT;\nif(uOn>0.5 && tt>uT) discard;\nif(uOn>0.5 && tt<=uT0 && uKeep<0.5) diffuseColor.rgb=mix(diffuseColor.rgb,uGrey,0.7);');
   };
 }
 function timeAttrs(n){
@@ -1181,7 +1185,7 @@ function sheet(){
 }
 function legend(){
   if(DESIGN.visible){ $('legend').innerHTML='<h3>Finished site · design model</h3>'; legH(); return }
-  if(mode==='month'){ $('legend').innerHTML=`<h3>Month ${curM} · build state</h3><div><span class="sw" style="background:#c2551f"></span><span>Built this month (own colours)</span></div><div><span class="sw" style="background:#a4aaae"></span><span>Built in earlier months${$('grey').checked?' (grey)':''}</span></div><div><span class="sw" style="background:transparent"></span><span>Later work is hidden</span></div>`; legH(); return }
+  if(mode==='month'){ $('legend').innerHTML=`<h3>Month ${curM} · build state</h3><div><span class="sw" style="background:#c2551f"></span><span>Built this month (own colours)</span></div><div><span class="sw" style="background:#a4aaae"></span><span>Built in earlier months${$('grey').checked?' (grey)':''}</span></div><div><span class="sw" style="background:transparent"></span><span>Later work is hidden</span></div>${curM>=KEEP_FROM?'<div><span class="sw" style="background:linear-gradient(90deg,#c4c6c5 50%,#5f615d 50%)"></span><span>Walls in facade colours</span></div>':''}`; legH(); return }
   const groups=new Set(NODES.filter(n=>cur===0||n.stage===cur).map(n=>n.group));
   if(cur===0){$('legend').innerHTML=`<h3>Complete model</h3><div style="display:block;max-width:220px">Each element shows in its own material colour. Pick a stage to see it built on top of the finished work.</div>`;legH();return}
   let h=`<h3>Stage ${cur} · this stage</h3>`+[...groups].map(g=>`<div><span class="sw" style="background:${STC.colors[g]}"></span><span>${esc(STC.labels[g]||g)}</span></div>`).join('');
@@ -1266,6 +1270,7 @@ new THREE.GLTFLoader().parse(bin,'',g=>{
     const list=STC.nodes[key]; if(!list) return;
     const [,stg,group]=key.match(/^s(\d+)_(.+)$/);
     o.material=o.material.clone(); o.material.side=THREE.DoubleSide; o.material.color.convertSRGBToLinear();
+    if(WALLC[group]) o.material.color.set(WALLC[group]).convertSRGBToLinear();
     hookShader(o.material);
     const n={mesh:o,geo:o.geometry,list,stage:+stg,group,c:o.material.color.clone(),drawn:0,t0:o.material.transparent,o0:o.material.opacity,d0:o.material.depthWrite,faded:false}; o.userData.node=n; NODES.push(n); timeAttrs(n);
   });

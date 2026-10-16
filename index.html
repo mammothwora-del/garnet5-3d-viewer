@@ -77,7 +77,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 #pick dl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:3px 10px;margin:8px 0 0}
 #pick dt{color:var(--muted)} #pick dd{margin:0;font-family:var(--mono);font-size:11.5px;overflow-wrap:anywhere}
 #pick .x{position:absolute;right:6px;top:6px;border:0;background:transparent;color:var(--muted);font-size:18px;cursor:pointer;line-height:1;padding:2px 6px}
-.hint{position:absolute;left:12px;top:50px;font-family:var(--mono);font-size:10.5px;color:var(--muted);white-space:nowrap;pointer-events:none}
+.bar>.hint{flex-basis:100%;font-family:var(--mono);font-size:10.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none;margin-top:2px}
 
 aside{background:var(--paper);border-left:1px solid var(--line);overflow:auto;min-width:0;
   padding-block:22px 28px;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
@@ -135,12 +135,14 @@ ul li::before{content:"";width:6px;height:6px;margin-top:7px;background:var(--mu
       <button id="vOver" aria-pressed="true">Overview</button>
       <button id="vClose" aria-pressed="false">Close-up</button>
       <label for="grey"><input type="checkbox" id="grey" checked> Grey out finished work</label>
+      <label for="design" title="Full SketchUp facade design model, shown when the build is complete"><input type="checkbox" id="design" checked> Facade design</label>
+      <div class="hint">drag to orbit · right-drag to pan · click an element for details · ← → change stage</div>
+
     </div>
     <div id="north" title="North"><svg viewBox="-14 -14 28 28" aria-label="North arrow"><g id="narrow"><path d="M0-11 L5 5 L0 2 L-5 5Z" fill="var(--accent)"/><text x="0" y="12" text-anchor="middle" font-size="7" font-family="IBM Plex Mono,monospace" fill="var(--ink)">N</text></g></svg></div>
     <div id="pick" hidden></div>
     <div class="legend" id="legend"></div>
     <div class="prog"><div id="count">–</div><div class="track"><div class="fill" id="fill"></div></div></div>
-    <div class="hint">drag to orbit · right-drag to pan · click an element for details · ← → change stage</div>
   </div>
   <aside><div class="sheet" id="sheet"></div></aside>
 </div>
@@ -999,10 +1001,11 @@ new MutationObserver(theme).observe(document.documentElement,{attributes:true,at
 })();
 
 /* site boundary (STR S1-01 site fence) as a red kerb at landfill level */
+const BOUND=new THREE.Group(); scene.add(BOUND);
 (function boundary(){
   const P=STC.boundary||[], y=(STC.fillz||0)+0.25, mat=new THREE.MeshBasicMaterial({color:0xc0392b});
   for(let i=0;i<P.length;i++){const [x0,z0]=P[i],[x1,z1]=P[(i+1)%P.length],L=Math.hypot(x1-x0,z1-z0);
-    const m=new THREE.Mesh(new THREE.BoxGeometry(L,0.5,0.7),mat); m.position.set((x0+x1)/2,y,(z0+z1)/2); m.rotation.y=-Math.atan2(z1-z0,x1-x0); m.renderOrder=3; scene.add(m)}
+    const m=new THREE.Mesh(new THREE.BoxGeometry(L,0.5,0.7),mat); m.position.set((x0+x1)/2,y,(z0+z1)/2); m.rotation.y=-Math.atan2(z1-z0,x1-x0); m.renderOrder=3; BOUND.add(m)}
 })();
 
 function size(){const r=host.getBoundingClientRect();renderer.setSize(r.width,r.height,false);cam.aspect=r.width/Math.max(r.height,1);cam.updateProjectionMatrix()}
@@ -1051,6 +1054,7 @@ function applyStage(){
     $('fill').style.width=(prog*100)+'%'; }
   else { $('count').textContent=`${fmt(shown)} / ${fmt(STC.stageN[cur])} elements in this stage`; $('fill').style.width=(prog*100)+'%'; }
   if(picked!==null && !pickedVisible()) closePick();
+  applyDesign();
 }
 function play(){ if(reduce){prog=1;applyStage();return} prog=0; anim={t0:performance.now(),dur:mode==='stage'&&cur===0?9000:6000}; applyStage(); }
 
@@ -1065,6 +1069,7 @@ function applyMonth(){
   $('count').textContent=`${fmt(now)} elements built this month · ${fmt(inPlace)} / ${fmt(TOTAL)} in place`;
   $('fill').style.width=(prog*100)+'%';
   if(picked!==null && !pickedVisible()) closePick();
+  applyDesign();
 }
 function hookShader(m){
   m.customProgramCacheKey=()=>'g5sched';
@@ -1079,6 +1084,33 @@ function timeAttrs(n){
   const g=n.geo, idx=g.index, nv=g.attributes.position.count, aT=new Float32Array(nv), aX=new Float32Array(nv).fill(-1);
   let f0=0; for(const [fe,k] of n.list){ for(let f=f0;f<fe;f++) for(let j=0;j<3;j++){const v=idx?idx.array[3*f+j]:3*f+j; aT[v]=SCH.et[k]; aX[v]=SCH.ex[k];} f0=fe; }
   g.setAttribute('aT',new THREE.BufferAttribute(aT,1)); g.setAttribute('aX',new THREE.BufferAttribute(aX,1));
+}
+
+/* ---------- facade design model (SketchUp 26.09.24, simplified to 5 cm) shown once the build is complete ---------- */
+const DESIGN=new THREE.Group(); DESIGN.visible=false; scene.add(DESIGN); let designState='none';
+function loadDesign(){
+  if(designState!=='none') return; designState='loading';
+  new Promise((ok,no)=>{const sc=document.createElement('script'); sc.src='facade.js'; sc.onload=ok; sc.onerror=no; document.head.appendChild(sc)})
+  .then(()=>{ const z=Uint8Array.from(atob(window.FACADE_B64),c=>c.charCodeAt(0)); window.FACADE_B64=null; // gzip-packed mesh
+    return new Response(new Blob([z]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer() })
+  .then(buf=>{
+    const hl=new DataView(buf).getUint32(0,true), H=JSON.parse(new TextDecoder().decode(new Uint8Array(buf,4,hl))); let o=4+hl;
+    const mats=H.mats.map(m=>new THREE.MeshPhongMaterial({color:new THREE.Color(...m.c).convertSRGBToLinear(),flatShading:true,side:THREE.DoubleSide,shininess:6,specular:0x0d0d0d,transparent:m.o<1,opacity:m.o,depthWrite:m.o>=1}));
+    for(const [mi,nv,ni] of H.chunks){
+      const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.BufferAttribute(new Int16Array(buf,o,nv*3),3)); o+=nv*6;
+      g.setIndex(new THREE.BufferAttribute(new Uint16Array(buf,o,ni),1)); o+=ni*2; o+=(4-o%4)%4;
+      const m=new THREE.Mesh(g,mats[mi]); m.matrixAutoUpdate=false; DESIGN.add(m);
+    }
+    DESIGN.scale.setScalar(H.g); DESIGN.updateMatrixWorld(true); designState='ready'; applyDesign();
+  }).catch(e=>{ designState='failed'; const d=$('design'); d.checked=false; d.disabled=true; d.parentElement.title='The facade design model could not be loaded'; });
+}
+function designOn(){ return $('design').checked && prog>=1 && (mode==='stage'?cur===0:curM===NM) }
+function applyDesign(){
+  const on=designOn(); if(on) loadDesign();
+  const vis=on&&designState==='ready', was=DESIGN.visible; DESIGN.visible=vis;
+  if(vis){ for(const n of NODES) n.mesh.visible=false; ground.material.opacity=1; ground.material.depthWrite=true; closePick(); }
+  BOUND.position.y=vis?0.35-(STC.fillz||0):0;
+  if(vis!==was) legend();
 }
 
 /* ---------- picking ---------- */
@@ -1135,6 +1167,7 @@ function sheet(){
   $('sheet').parentElement.scrollTop=0;
 }
 function legend(){
+  if(DESIGN.visible){ $('legend').innerHTML='<h3>Finished site · design model</h3>'; legH(); return }
   if(mode==='month'){ $('legend').innerHTML=`<h3>Month ${curM} · build state</h3><div><span class="sw" style="background:#c2551f"></span><span>Built this month (own colours)</span></div><div><span class="sw" style="background:#a4aaae"></span><span>Built in earlier months${$('grey').checked?' (grey)':''}</span></div><div><span class="sw" style="background:transparent"></span><span>Later work is hidden</span></div>`; legH(); return }
   const groups=new Set(NODES.filter(n=>cur===0||n.stage===cur).map(n=>n.group));
   if(cur===0){$('legend').innerHTML=`<h3>Complete model</h3><div style="display:block;max-width:220px">Each element shows in its own material colour. Pick a stage to see it built on top of the finished work.</div>`;legH();return}
@@ -1143,7 +1176,7 @@ function legend(){
   $('legend').innerHTML=h; legH();
 }
 let legMin=matchMedia('(max-width:860px)').matches;
-function legH(){const L=$('legend'),t=L.querySelector('h3'); L.insertAdjacentHTML('beforeend','<div><span class="sw" style="background:#c0392b;height:4px;align-self:center"></span><span>Site boundary (S1-01)</span></div>'); L.classList.toggle('min',legMin); t.setAttribute('role','button'); t.tabIndex=0; t.title=legMin?'Show legend':'Hide legend'; t.insertAdjacentText('beforeend',legMin?' ▸':' ▾'); t.onclick=()=>{legMin=!legMin;legend()}}
+function legH(){const L=$('legend'),t=L.querySelector('h3'); if(DESIGN.visible) L.insertAdjacentHTML('beforeend','<div style="display:block;max-width:220px">Showing the full facade design model (SketchUp, 26.09.24). Colours are approximate. Untick “Facade design” to see the element model.</div>'); L.insertAdjacentHTML('beforeend','<div><span class="sw" style="background:#c0392b;height:4px;align-self:center"></span><span>Site boundary (S1-01)</span></div>'); L.classList.toggle('min',legMin); t.setAttribute('role','button'); t.tabIndex=0; t.title=legMin?'Show legend':'Hide legend'; t.insertAdjacentText('beforeend',legMin?' ▸':' ▾'); t.onclick=()=>{legMin=!legMin;legend()}}
 function tabs(){
   if(mode==='month'){ $('tabs').innerHTML=SCH.months.map(M=>`<button class="${M.n===curM?'cur':M.n<curM?'done':''}" aria-current="${M.n===curM?'step':'false'}" onclick="setMonth(${M.n})"><span class="k">M${M.n}</span>${MON[+M.a.slice(5,7)-1]} ${M.a.slice(2,4)}</button>`).join(''); $('tabs').children[curM-1].scrollIntoView({block:'nearest',inline:'nearest'}); return }
   $('tabs').innerHTML=S.map((s,i)=>`<button class="${i===cur?'cur':i<cur&&i>0?'done':''}" aria-current="${i===cur?'step':'false'}" onclick="setStage(${i})">${i?`<span class="k">${i}</span>`:''}${esc(s.short)}</button>`).join('');
@@ -1187,7 +1220,7 @@ function monthSheet(){
   $('sheet').parentElement.scrollTop=0;
 }
 $('replay').onclick=play; $('vOver').onclick=()=>goCam(false); $('vClose').onclick=()=>goCam(true);
-$('grey').onchange=()=>{applyStage();legend()};
+$('grey').onchange=()=>{applyStage();legend()}; $('design').onchange=()=>applyStage();
 addEventListener('keydown',e=>{ if(e.target.closest&&e.target.closest('input,textarea'))return;
   const step=d=>mode==='month'?setMonth(curM+d):setStage(cur+d); if(e.key==='ArrowRight'){step(1);e.preventDefault()} else if(e.key==='ArrowLeft'){step(-1);e.preventDefault()} });
 addEventListener('hashchange',()=>{const m=location.hash.match(/(stage|month)(\d+)/); if(!m) return; if(m[1]==='month'){if(mode!=='month'||+m[2]!==curM) setMode('month',+m[2])} else if(mode!=='stage'||+m[2]!==cur) setMode('stage',+m[2])});

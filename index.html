@@ -1088,7 +1088,7 @@ function timeAttrs(n){
 }
 
 /* ---------- facade design model (SketchUp 26.09.24, simplified to 5 cm) shown once the build is complete ---------- */
-const DESIGN=new THREE.Group(); DESIGN.visible=false; scene.add(DESIGN); let designState='none';
+const DESIGN=new THREE.Group(); DESIGN.visible=false; scene.add(DESIGN); let designState='none', dFade=null, dMats=[];
 function loadDesign(){
   if(designState!=='none') return; designState='loading';
   new Promise((ok,no)=>{const sc=document.createElement('script'); sc.src='facade.js'; sc.onload=ok; sc.onerror=no; document.head.appendChild(sc)})
@@ -1096,20 +1096,31 @@ function loadDesign(){
     return new Response(new Blob([z]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer() })
   .then(buf=>{
     const hl=new DataView(buf).getUint32(0,true), H=JSON.parse(new TextDecoder().decode(new Uint8Array(buf,4,hl))); let o=4+hl;
-    const mats=H.mats.map(m=>new THREE.MeshPhongMaterial({color:new THREE.Color(...m.c).convertSRGBToLinear(),flatShading:true,side:THREE.DoubleSide,shininess:6,specular:0x0d0d0d,transparent:m.o<1,opacity:m.o,depthWrite:m.o>=1}));
+    const mats=dMats=H.mats.map(m=>{const x=new THREE.MeshPhongMaterial({color:new THREE.Color(...m.c).convertSRGBToLinear(),flatShading:true,side:THREE.DoubleSide,shininess:6,specular:0x0d0d0d,transparent:true,opacity:m.o,depthWrite:m.o>=1}); x.userData.o=m.o; return x});
     for(const [mi,nv,ni] of H.chunks){
       const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.BufferAttribute(new Int16Array(buf,o,nv*3),3)); o+=nv*6;
       g.setIndex(new THREE.BufferAttribute(new Uint16Array(buf,o,ni),1)); o+=ni*2; o+=(4-o%4)%4;
       const m=new THREE.Mesh(g,mats[mi]); m.matrixAutoUpdate=false; DESIGN.add(m);
     }
-    DESIGN.scale.setScalar(H.g); DESIGN.updateMatrixWorld(true); designState='ready'; applyDesign();
+    DESIGN.scale.setScalar(H.g); DESIGN.updateMatrixWorld(true);
+    // upload the mesh to the GPU once, off screen, so it does not stutter when it first appears
+    const rt=new THREE.WebGLRenderTarget(8,8), was=DESIGN.visible; DESIGN.visible=true; renderer.setRenderTarget(rt); renderer.render(scene,cam); renderer.setRenderTarget(null); rt.dispose(); DESIGN.visible=was;
+    designState='ready'; applyDesign();
   }).catch(e=>{ designState='failed'; const d=$('design'); d.checked=false; d.disabled=true; d.parentElement.title='The facade design model could not be loaded'; });
+}
+function designLook(){
+  const k=dFade?Math.min(1,(performance.now()-dFade.t0)/1200):1, e=k*k*(3-2*k);
+  for(const m of dMats){ const o=m.userData.o*e; m.opacity=o; const solid=k>=1&&m.userData.o>=1; m.depthWrite=solid; m.transparent=!solid; }
+  if(dFade&&k>=1){ dFade=null; if(DESIGN.visible) for(const n of NODES) n.mesh.visible=false; }
 }
 function designOn(){ return $('design').checked && prog>=1 && (mode==='stage'?cur===0:curM===NM) }
 function applyDesign(){
   const on=designOn(); if(on) loadDesign();
   const vis=on&&designState==='ready', was=DESIGN.visible; DESIGN.visible=vis;
-  if(vis){ for(const n of NODES) n.mesh.visible=false; ground.material.opacity=1; ground.material.depthWrite=true; closePick(); }
+  if(vis&&!was&&!reduce) dFade={t0:performance.now()};      // fade the design model in over the element model
+  if(!vis) dFade=null;
+  designLook(); 
+  if(vis){ if(!dFade) for(const n of NODES) n.mesh.visible=false; ground.material.opacity=1; ground.material.depthWrite=true; closePick(); }
   BOUND.position.y=vis?0.35-(STC.fillz||0):0;
   if(vis!==was) legend();
 }
@@ -1265,6 +1276,7 @@ new THREE.GLTFLoader().parse(bin,'',g=>{
 const a=new THREE.Vector3(), b=new THREE.Vector3();
 (function loop(now){
   requestAnimationFrame(loop);
+  if(dFade) designLook();
   if(run) stepRun(now);
   else if(anim){ prog=Math.min(1,(now-anim.t0)/anim.dur); applyStage(); if(prog>=1) anim=null; }
   if(glide){ const k=Math.min(1,(now-glide.t0)/800), e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;

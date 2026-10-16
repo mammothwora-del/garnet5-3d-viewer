@@ -975,7 +975,7 @@ const renderer=new THREE.WebGLRenderer({antialias:true});
 renderer.setPixelRatio(Math.min(devicePixelRatio,2)); renderer.outputEncoding=THREE.sRGBEncoding;
 host.prepend(renderer.domElement);
 const scene=new THREE.Scene();
-const cam=new THREE.PerspectiveCamera(40,1,0.3,3000);
+const cam=new THREE.PerspectiveCamera(40,1,1,3000); // near 1 m keeps depth precise for panels a few cm proud of the wall
 const ctl=new THREE.OrbitControls(cam,renderer.domElement); ctl.enableDamping=true; ctl.maxPolarAngle=Math.PI*0.62;
 scene.add(new THREE.HemisphereLight(0xf2f5f7,0x6b6a60,0.7));
 const sun=new THREE.DirectionalLight(0xffffff,0.75); sun.position.set(120,200,160); scene.add(sun);

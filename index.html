@@ -960,6 +960,7 @@ window.STC.labels.steel='Structural steel & purlins';
 // wall colours from the SketchUp facade design (light grey cladding, darker louver band, office panels, dark grey lower walls)
 const WALLC={clad:'#c4c6c5',louver:'#8b908d',office:'#c1c7c5',brick:'#5f615d',window:'#2b2d2c'};
 Object.assign(window.STC.colors,WALLC);
+const PILEC='#ecebe6'; window.STC.colors.pile=PILEC; // precast piles near white so they stand out from the landfill; never greyed
 const KEEP_FROM=7; // from month 7 the finished walls keep their facade colours instead of turning grey
 const STC=window.STC, S=window.S, NST=S.length-1, TOTAL=Object.values(STC.stageN).reduce((a,b)=>a+b,0);
 const $=id=>document.getElementById(id);
@@ -1073,7 +1074,7 @@ function applyStage(){
   for(const n of NODES){
     const vis=n.stage<=st; n.mesh.visible=vis; if(!vis) continue;
     const m=n.mesh.material;
-    if(n.stage<st){ n.geo.setDrawRange(0,Infinity); m.color.copy(greyOn?n.c.clone().lerp(GREY,.7):n.c); fade(n,greyOn); }
+    if(n.stage<st){ n.geo.setDrawRange(0,Infinity); m.color.copy(greyOn&&n.group!=='pile'?n.c.clone().lerp(GREY,.7):n.c); fade(n,greyOn); }
     else { n.drawn=partialFaces(n.list,shown); n.geo.setDrawRange(0,n.drawn*3); m.color.copy(n.c); fade(n,false); }
   }
   for(const n of NODES) if(n.group==='fill'&&n.mesh.visible) fillLook(n,st===1&&!(cur===0&&prog>=1));
@@ -1094,7 +1095,7 @@ function play(){ if(reduce){prog=1;applyStage();return} prog=0; anim={t0:perform
 function applyMonth(){
   const M=SCH.months[curM-1], t=M.A+prog*(M.B-M.A), greyOn=$('grey').checked;
   U.uOn.value=1; U.uT.value=t; U.uT0.value=greyOn?M.A:-1; U.uSOn.value=0; for(const m of dMats) m.userData.keep.value=curM>=KEEP_FROM?1:0;
-  for(const n of NODES){ n.mesh.visible=true; n.geo.setDrawRange(0,Infinity); n.mesh.material.color.copy(n.c); fade(n,false); n.mesh.material.userData.keep.value=(curM>=KEEP_FROM&&WALLC[n.group])?1:0; }
+  for(const n of NODES){ n.mesh.visible=true; n.geo.setDrawRange(0,Infinity); n.mesh.material.color.copy(n.c); fade(n,false); n.mesh.material.userData.keep.value=((curM>=KEEP_FROM&&WALLC[n.group])||n.group==='pile')?1:0; }
   ground.material.opacity=curM<=3?0.28:0.5; ground.material.depthWrite=false;
   for(const n of NODES) if(n.group==='fill'){const e=Math.max(...n.list.map(([,k])=>SCH.ex[k]>=0?SCH.ex[k]:SCH.et[k])); fillLook(n,e>M.A);}
   let now=0, inPlace=0; for(let k=0;k<SCH.et.length;k++){const e=SCH.ex[k]>=0?SCH.ex[k]:SCH.et[k]; if(e<=t){inPlace++; if(e>M.A) now++;}}
@@ -1317,7 +1318,7 @@ new THREE.GLTFLoader().parse(bin,'',g=>{
     const list=STC.nodes[key]; if(!list) return;
     const [,stg,group]=key.match(/^s(\d+)_(.+)$/);
     o.material=o.material.clone(); o.material.side=THREE.DoubleSide; o.material.color.convertSRGBToLinear();
-    if(WALLC[group]) o.material.color.set(WALLC[group]).convertSRGBToLinear();
+    if(WALLC[group]) o.material.color.set(WALLC[group]).convertSRGBToLinear(); if(group==='pile') o.material.color.set(PILEC).convertSRGBToLinear();
     hookShader(o.material); o.customDepthMaterial=DEPTH;
     const n={mesh:o,geo:o.geometry,list,stage:+stg,group,c:o.material.color.clone(),drawn:0,t0:o.material.transparent,o0:o.material.opacity,d0:o.material.depthWrite,faded:false}; o.userData.node=n; NODES.push(n); timeAttrs(n);
   });

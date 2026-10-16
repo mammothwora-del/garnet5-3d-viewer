@@ -1096,7 +1096,7 @@ function loadDesign(){
     return new Response(new Blob([z]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer() })
   .then(buf=>{
     const hl=new DataView(buf).getUint32(0,true), H=JSON.parse(new TextDecoder().decode(new Uint8Array(buf,4,hl))); let o=4+hl;
-    const mats=dMats=H.mats.map(m=>{const x=new THREE.MeshPhongMaterial({color:new THREE.Color(...m.c).convertSRGBToLinear(),flatShading:true,side:THREE.DoubleSide,shininess:6,specular:0x0d0d0d,transparent:true,opacity:m.o,depthWrite:m.o>=1}); x.userData.o=m.o; return x});
+    const mats=dMats=H.mats.map(m=>{const x=new THREE.MeshPhongMaterial({color:new THREE.Color(...m.c).convertSRGBToLinear().multiplyScalar(0.72),flatShading:true,side:THREE.DoubleSide,shininess:6,specular:0x0d0d0d,transparent:true,opacity:m.o,depthWrite:m.o>=1}); x.userData.o=m.o; return x});
     for(const [mi,nv,ni] of H.chunks){
       const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.BufferAttribute(new Int16Array(buf,o,nv*3),3)); o+=nv*6;
       g.setIndex(new THREE.BufferAttribute(new Uint16Array(buf,o,ni),1)); o+=ni*2; o+=(4-o%4)%4;
@@ -1120,7 +1120,8 @@ function applyDesign(){
   if(vis&&!was&&!reduce) dFade={t0:performance.now()};      // fade the design model in over the element model
   if(!vis) dFade=null;
   designLook(); 
-  if(vis){ if(!dFade) for(const n of NODES) n.mesh.visible=false; ground.material.opacity=1; ground.material.depthWrite=true; closePick(); }
+  if(vis){ if(!dFade) for(const n of NODES) n.mesh.visible=false; ground.material.opacity=1; ground.material.depthWrite=true; ground.material.color.set('#83a561').convertSRGBToLinear(); closePick(); }
+  else theme();
   BOUND.position.y=vis?0.35-(STC.fillz||0):0;
   if(vis!==was) legend();
 }
